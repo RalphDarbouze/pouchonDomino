@@ -3,127 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎲 Domino de Pouchon Pouchon Ville | Jwèt Domino Ayisyen sou Entènèt</title>
+    <title>🎲 Domino de Pouchon Pouchon Ville | Jwèt Domino Ayisyen</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>">
 </head>
 <body>
     <!-- Diplome Overlay -->
-    <div id="diplome-overlay" class="diplome-overlay hidden">
-        <div class="diplome-container">
-            <div class="diplome-title">📜 DIPLÒM OFISYÈL</div>
-            <div class="diplome-text">MEN DIPLÒM MR DARBOUZE LA!</div>
-            <div class="diplome-text">🎓 GRAN MÈT DOMINO POUCHON VILLE 🎓</div>
-            <div class="diplome-text">🏆 CHANPYON ABSOLI 🏆</div>
-            <div class="diplome-signature">Siyati: _________<br>Dat: Jodi a</div>
-            <button class="diplome-close" onclick="closeDiplome()">Fèmen Diplòm lan</button>
+    <div id="diplome-overlay" class="overlay">
+        <div class="diplome-card">
+            <div class="diplome-header">
+                <div class="diplome-title">📜 DIPLÒM OFISYÈL</div>
+                <div class="diplome-subtitle">POUCHON POUCHON VILLE</div>
+            </div>
+            <div class="diplome-content">
+                <div class="diplome-text">MEN DIPLÒM MR DARBOUZE LA!</div>
+                <div class="diplome-text">🎓 GRAN MÈT DOMINO 🎓</div>
+                <div class="diplome-award">🏆 CHANPYON ABSOLI 🏆</div>
+                <div class="diplome-footer">
+                    <div class="signature">Siyati: ________________</div>
+                    <div class="date">Dat: <span id="current-date"></span></div>
+                </div>
+            </div>
+            <button class="btn-close" onclick="closeDiplome()">Fèmen</button>
         </div>
     </div>
 
-    <!-- App Container -->
-    <div id="app">
-        <!-- Home Screen -->
-        <div id="home-screen" class="screen active">
-            <div class="header">
-                <h1>🎲 DOMINO DE POUCHON POUCHON VILLE</h1>
-                <p class="subtitle">Jwèt Domino Ayisyen - Jwe solo, 2, 3, oswa 4 moun!</p>
-                <div class="haiti-flag">
-                    <span style="color: #00209f">█</span>
-                    <span style="color: #d21034">█</span>
-                    <span style="color: #000">█</span>
+    <!-- Main Game Container -->
+    <div id="game-container">
+        <!-- Main Menu -->
+        <div id="main-menu" class="screen active">
+            <div class="menu-header">
+                <h1><span class="domino-emoji">🎲</span> DOMINO DE POUCHON POUCHON VILLE</h1>
+                <p class="tagline">Jwèt Domino Tradisyonèl Ayisyen</p>
+            </div>
+
+            <div class="menu-content">
+                <div class="player-selector">
+                    <h2>Chwazi Konben Moun Kap Jwe</h2>
+                    <div class="player-options">
+                        <div class="player-option active" data-players="1">
+                            <div class="option-icon">🤖🤖🤖</div>
+                            <div class="option-title">SOLO</div>
+                            <div class="option-desc">Jwe kont 3 AI</div>
+                        </div>
+                        <div class="player-option" data-players="2">
+                            <div class="option-icon">👤🤖🤖</div>
+                            <div class="option-title">2 JOUE</div>
+                            <div class="option-desc">1 zanmi + 2 AI</div>
+                        </div>
+                        <div class="player-option" data-players="3">
+                            <div class="option-icon">👤👤🤖</div>
+                            <div class="option-title">3 JOUE</div>
+                            <div class="option-desc">2 zanmi + 1 AI</div>
+                        </div>
+                        <div class="player-option" data-players="4">
+                            <div class="option-icon">👤👤👤👤</div>
+                            <div class="option-title">4 JOUE</div>
+                            <div class="option-desc">Tout moun reyèl</div>
+                        </div>
+                    </div>
+
+                    <div class="ai-settings" id="ai-settings">
+                        <h3>Nivo Difikilte AI:</h3>
+                        <div class="difficulty-buttons">
+                            <button class="difficulty-btn active" data-difficulty="easy">Fasil 😊</button>
+                            <button class="difficulty-btn" data-difficulty="medium">Mwayen 😐</button>
+                            <button class="difficulty-btn" data-difficulty="hard">Difikil 😠</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-info">
+                    <div class="input-group">
+                        <label for="player-name">Non ou:</label>
+                        <input type="text" id="player-name" placeholder="Antre non ou" value="Jouè">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="special-code">Kòd Espesyal:</label>
+                        <input type="text" id="special-code" placeholder="Ex: DARBOUZE123">
+                        <small class="hint">Pou jwenn diplòm Mr Darbouze</small>
+                    </div>
+
+                    <button id="start-game" class="btn-primary btn-large">
+                        <span class="btn-icon">🚀</span> KOMANSE JWE
+                    </button>
+
+                    <div class="game-stats">
+                        <div class="stat">
+                            <div class="stat-value" id="games-played">0</div>
+                            <div class="stat-label">Jwèt Jwe</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="wins-count">0</div>
+                            <div class="stat-label">Viktwa</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="diplome-count">0</div>
+                            <div class="stat-label">Diplòm</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="card">
-                <h2>📥 Chwazi jan w vle jwe</h2>
-                
-                <div class="player-count-selector">
-                    <div class="player-option" data-players="1">
-                        <div class="player-icon">🤖</div>
-                        <div class="player-label">Solo</div>
-                        <div class="player-desc">3 zanmi AI</div>
-                    </div>
-                    <div class="player-option" data-players="2">
-                        <div class="player-icon">👤+🤖</div>
-                        <div class="player-label">2 moun</div>
-                        <div class="player-desc">1 zanmi + 2 AI</div>
-                    </div>
-                    <div class="player-option" data-players="3">
-                        <div class="player-icon">👥+🤖</div>
-                        <div class="player-label">3 moun</div>
-                        <div class="player-desc">2 zanmi + 1 AI</div>
-                    </div>
-                    <div class="player-option" data-players="4">
-                        <div class="player-icon">👥👥</div>
-                        <div class="player-label">4 moun</div>
-                        <div class="player-desc">Tout moun reyèl</div>
-                    </div>
-                </div>
-                
-                <div class="ai-difficulty hidden" id="ai-difficulty">
-                    <label>Chwaji nivo difikilte AI yo:</label>
-                    <div class="difficulty-options">
-                        <button class="difficulty-btn easy" data-difficulty="easy">Fasil 😊</button>
-                        <button class="difficulty-btn medium" data-difficulty="medium">Mwayen 😐</button>
-                        <button class="difficulty-btn hard" data-difficulty="hard">Difikil 😠</button>
-                    </div>
-                </div>
-                
-                <input type="text" id="player-name" placeholder="Non ou" maxlength="20" value="Jouè">
-                <input type="password" id="player-code" placeholder="Kòd espesyal (si w genyen)" maxlength="10">
-                
-                <div class="button-group">
-                    <button id="quick-play" class="btn-primary">
-                        <span class="icon">🚀</span> Kòmanse Jwèt
-                    </button>
-                    <button id="create-room" class="btn-secondary">
-                        <span class="icon">🔒</span> Kreye Chanm
-                    </button>
-                    <button id="join-room" class="btn-secondary">
-                        <span class="icon">🔑</span> Antre nan Chanm
-                    </button>
-                </div>
-                
-                <div id="room-code-section" class="hidden">
-                    <input type="text" id="room-code-input" placeholder="Antre kòd chanm nan" maxlength="6">
-                    <button id="confirm-join" class="btn-primary">Antre</button>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>📖 Kijan pou Jwe</h2>
-                <ul class="instructions">
-                    <li><span class="icon">👥</span> 1-4 moun kap jwe</li>
-                    <li><span class="icon">🎲</span> Dòb sis (6-6) kòmanse jwèt la</li>
-                    <li><span class="icon">🃏</span> Mete domino ki matche ak chif yo</li>
-                    <li><span class="icon">🏆</span> Premye moun ki rive 100 pwen genyen</li>
-                    <li><span class="icon">💬</span> AI ap jwe otomatikman</li>
-                </ul>
-                
-                <button onclick="showDiplome()" class="btn-small">
-                    <span class="icon">📜</span> Gade Diplòm Mr Darbouze
+
+            <div class="menu-footer">
+                <button class="btn-small" onclick="showDiplome()">
+                    <span class="btn-icon">📜</span> Gade Diplòm Egzanp
                 </button>
-            </div>
-            
-            <div class="game-stats">
-                <div class="stat">
-                    <span class="stat-number" id="online-count">0</span>
-                    <span class="stat-label">Moun k'ap Jwe</span>
+                <div class="instructions">
+                    <h3>📖 Kijan Pou Jwe:</h3>
+                    <ul>
+                        <li>Dòb sis (6-6) kòmanse jwèt la</li>
+                        <li>Mete domino ki matche ak chif ki sou bout liy la</li>
+                        <li>Si w pa kapab jwe, pran domino nan pil la</li>
+                        <li>Premye moun ki fini domino yo genyen pwen</li>
+                    </ul>
                 </div>
-                <div class="stat">
-                    <span class="stat-number" id="games-played">0</span>
-                    <span class="stat-label">Jwèt Fini</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number" id="diplome-shown">0</span>
-                    <span class="stat-label">Diplòm Bay</span>
-                </div>
-            </div>
-            
-            <div class="footer">
-                <p>⭐ Se yon jwèt pou Pouchon Pouchon Ville! ⭐</p>
-                <p class="small">Si w jwe byen, w ka resevwa diplòm Mr Darbouze tou!</p>
             </div>
         </div>
 
@@ -131,96 +126,145 @@
         <div id="game-screen" class="screen">
             <div class="game-header">
                 <div class="game-info">
-                    <div class="room-info">Mod: <span id="game-mode">Solo</span></div>
-                    <div class="turn-indicator" id="turn-indicator">Se tou pa ou!</div>
-                    <div class="score-display" id="score-display">Pwen: 0</div>
-                    <button onclick="showDiplome()" class="btn-tiny">
-                        📜 Diplòm
-                    </button>
-                </div>
-                <button id="leave-game" class="btn-small btn-danger">Soti nan Jwèt</button>
-            </div>
-            
-            <div class="game-board">
-                <div class="domino-line-container">
-                    <div id="domino-line"></div>
-                </div>
-                <div class="boneyard">
-                    <div class="boneyard-label">Pil Domino</div>
-                    <div class="boneyard-count" id="boneyard-count">28</div>
-                    <button id="draw-btn" class="btn-action">🔽 Pran</button>
-                </div>
-            </div>
-            
-            <div class="player-hands">
-                <div class="opponent-hand" id="opponent-left">
-                    <div class="player-label">Bot Jean</div>
-                    <div class="hand-count">7 domino</div>
-                    <div class="ai-badge">AI</div>
-                </div>
-                <div class="opponent-hand" id="opponent-top">
-                    <div class="player-label">Bot Marie</div>
-                    <div class="hand-count">7 domino</div>
-                    <div class="ai-badge">AI</div>
-                </div>
-                <div class="opponent-hand" id="opponent-right">
-                    <div class="player-label">Bot Pierre</div>
-                    <div class="hand-count">7 domino</div>
-                    <div class="ai-badge">AI</div>
-                </div>
-            </div>
-            
-            <div class="my-hand-section">
-                <div class="hand-header">
-                    <div class="my-label">Men ou (<span id="my-hand-count">7</span> domino)</div>
-                    <div class="hand-controls">
-                        <button id="pass-btn" class="btn-action" disabled>↩️ Pa kapab Jwe</button>
-                        <button id="hint-btn" class="btn-action">💡 Konsèy</button>
+                    <div class="game-mode" id="game-mode">SOLO</div>
+                    <div class="turn-indicator" id="turn-indicator">
+                        <span class="turn-icon">🎯</span>
+                        <span class="turn-text">SE TOU PA OU!</span>
+                    </div>
+                    <div class="score-display">
+                        <span class="score-label">Pwen:</span>
+                        <span class="score-value" id="player-score">0</span>
                     </div>
                 </div>
-                <div class="my-hand" id="my-hand"></div>
+                <div class="game-controls">
+                    <button id="hint-btn" class="btn-small">
+                        <span class="btn-icon">💡</span> Konsèy
+                    </button>
+                    <button id="menu-btn" class="btn-small btn-danger">
+                        <span class="btn-icon">🏠</span> Retounen
+                    </button>
+                </div>
             </div>
-            
-            <div class="game-bottom">
-                <div class="game-chat">
-                    <h4>📨 Chat</h4>
-                    <div id="game-chat-messages" class="chat-messages"></div>
-                    <input type="text" id="game-chat-input" placeholder="Pale isit..." disabled>
+
+            <div class="game-board">
+                <!-- Top Player (Opponent 2) -->
+                <div class="opponent-area top-player" id="top-player">
+                    <div class="player-info">
+                        <div class="player-name">Bot Marie</div>
+                        <div class="player-hand-count">7 domino</div>
+                        <div class="ai-badge">AI</div>
+                    </div>
+                    <div class="hand-display" id="top-hand"></div>
                 </div>
-                <div class="game-log" id="game-log">
-                    <h4>📝 Istwa Jwèt</h4>
-                    <div class="log-entries"></div>
+
+                <!-- Left Player (Opponent 1) -->
+                <div class="opponent-area left-player" id="left-player">
+                    <div class="player-info">
+                        <div class="player-name">Bot Jean</div>
+                        <div class="player-hand-count">7 domino</div>
+                        <div class="ai-badge">AI</div>
+                    </div>
+                    <div class="hand-display" id="left-hand"></div>
                 </div>
+
+                <!-- Center Game Area -->
+                <div class="center-area">
+                    <div class="domino-line-container">
+                        <div class="domino-line" id="domino-line"></div>
+                        <div class="line-ends">
+                            <div class="line-end left-end" id="left-end">0</div>
+                            <div class="line-end right-end" id="right-end">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="boneyard">
+                        <div class="boneyard-label">PIL DOMINO</div>
+                        <div class="boneyard-count" id="boneyard-count">28</div>
+                        <button id="draw-btn" class="btn-action" disabled>
+                            <span class="btn-icon">🃏</span> Pran
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Player (Opponent 3) -->
+                <div class="opponent-area right-player" id="right-player">
+                    <div class="player-info">
+                        <div class="player-name">Bot Pierre</div>
+                        <div class="player-hand-count">7 domino</div>
+                        <div class="ai-badge">AI</div>
+                    </div>
+                    <div class="hand-display" id="right-hand"></div>
+                </div>
+
+                <!-- Bottom Player (User) -->
+                <div class="player-area">
+                    <div class="player-info">
+                        <div class="player-name">Jouè</div>
+                        <div class="player-hand-count">
+                            <span id="player-hand-count">7</span> domino
+                        </div>
+                        <div class="player-you">(Ou)</div>
+                    </div>
+                    
+                    <div class="player-controls">
+                        <button id="pass-btn" class="btn-action" disabled>
+                            <span class="btn-icon">↩️</span> Pa kapab jwe
+                        </button>
+                        <div class="game-status" id="game-status">Jwèt la ap kòmanse...</div>
+                    </div>
+
+                    <div class="player-hand" id="player-hand"></div>
+                </div>
+            </div>
+
+            <div class="game-log">
+                <div class="log-header">
+                    <h3>📝 ISTWA JWE</h3>
+                    <button class="btn-tiny" id="clear-log">Efase</button>
+                </div>
+                <div class="log-content" id="game-log"></div>
             </div>
         </div>
 
         <!-- Game Over Screen -->
         <div id="game-over-screen" class="screen">
             <div class="result-card">
-                <h2>🏁 Jwèt Fini!</h2>
-                <div class="winner-display" id="winner-name"></div>
-                
-                <div class="final-scores">
-                    <h3>⏱️ Pwen Final</h3>
-                    <table id="final-scores-table">
+                <div class="result-header">
+                    <h2>🏆 JWE FINI! 🏆</h2>
+                    <div class="winner-announcement" id="winner-announcement"></div>
+                </div>
+
+                <div class="result-scores">
+                    <h3>REZILTA FINAL</h3>
+                    <table class="scores-table">
                         <thead>
                             <tr>
                                 <th>Jouè</th>
                                 <th>Pwen</th>
-                                <th>Domino rete</th>
+                                <th>Domino Rete</th>
+                                <th>Total</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody id="final-scores">
+                            <!-- Scores will be inserted here -->
+                        </tbody>
                     </table>
                 </div>
-                
-                <div class="action-buttons">
-                    <button id="play-again" class="btn-primary">
-                        <span class="icon">🔄</span> Jwe Ankò
+
+                <div class="result-actions">
+                    <button id="play-again-btn" class="btn-primary">
+                        <span class="btn-icon">🔄</span> Jwe Ankò
                     </button>
-                    <button id="back-to-home" class="btn-secondary">
-                        <span class="icon">🏠</span> Retounen Lakay
+                    <button id="main-menu-btn" class="btn-secondary">
+                        <span class="btn-icon">🏠</span> Retounen Nan Menu
                     </button>
+                </div>
+
+                <div class="diplome-chance">
+                    <label>
+                        <input type="checkbox" id="auto-diplome" checked>
+                        Montre diplòm otomatik lè mwen genyen
+                    </label>
                 </div>
             </div>
         </div>
@@ -229,7 +273,10 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast"></div>
 
-    <!-- Scripts -->
+    <!-- Audio Elements -->
+    <audio id="sound-domino" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3" preload="auto"></audio>
+    <audio id="sound-win" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+
     <script src="game.js"></script>
 </body>
 </html>
