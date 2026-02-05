@@ -1,37 +1,37 @@
-// Domino de Pouchon Pouchon Ville - Complete Working Game
+// DOMINO DE POUCHON POUCHON VILLE - Fixed Game Logic
 class DominoGame {
     constructor() {
         this.playerName = 'Jouè';
         this.selectedPlayers = 1;
         this.aiDifficulty = 'medium';
         this.gameState = null;
-        this.myHand = [];
+        this.playerHand = [];
         this.selectedDomino = null;
         this.aiPlayers = [];
-        this.isMyTurn = false;
+        this.isGameActive = false;
         
         this.initializeEventListeners();
-        this.loadPlayerData();
-        this.initializeUI();
+        this.loadGameData();
+        this.setCurrentDate();
     }
     
     initializeEventListeners() {
         // Player count selection
         document.querySelectorAll('.player-option').forEach(option => {
             option.addEventListener('click', (e) => {
-                this.selectPlayerCount(parseInt(e.currentTarget.dataset.players));
+                this.selectPlayerCount(e.currentTarget);
             });
         });
         
         // Difficulty selection
         document.querySelectorAll('.difficulty-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                this.selectDifficulty(e.currentTarget.dataset.difficulty);
+                this.selectDifficulty(e.currentTarget);
             });
         });
         
         // Start game button
-        document.getElementById('quick-play').addEventListener('click', () => {
+        document.getElementById('start-game').addEventListener('click', () => {
             this.startGame();
         });
         
@@ -48,214 +48,199 @@ class DominoGame {
             this.showHint();
         });
         
-        document.getElementById('leave-game').addEventListener('click', () => {
-            this.leaveGame();
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            this.returnToMenu();
         });
         
-        document.getElementById('play-again').addEventListener('click', () => {
+        document.getElementById('play-again-btn').addEventListener('click', () => {
             this.playAgain();
         });
         
-        document.getElementById('back-to-home').addEventListener('click', () => {
-            this.backToHome();
+        document.getElementById('main-menu-btn').addEventListener('click', () => {
+            this.returnToMenu();
+        });
+        
+        document.getElementById('clear-log').addEventListener('click', () => {
+            this.clearGameLog();
         });
         
         // Player name input
         document.getElementById('player-name').addEventListener('input', (e) => {
-            this.playerName = e.target.value || 'Jouè';
-            localStorage.setItem('playerName', this.playerName);
+            this.playerName = e.target.value.trim() || 'Jouè';
+            localStorage.setItem('dominoPlayerName', this.playerName);
         });
         
         // Special code check
-        document.getElementById('player-code').addEventListener('change', (e) => {
-            if (e.target.value === 'DARBOUZE123' || e.target.value === 'POUCHON2024') {
-                showDiplome();
-                this.showToast("🎉 Ou jwenn kòd espesyal Mr Darbouze a!");
+        document.getElementById('special-code').addEventListener('change', (e) => {
+            const code = e.target.value.toUpperCase();
+            if (code === 'DARBOUZE123' || code === 'POUCHON2024') {
+                setTimeout(() => {
+                    showDiplome();
+                    this.showToast("🎉 Ou jwenn kòd espesyal Mr Darbouze a!");
+                }, 500);
                 e.target.value = '';
             }
         });
+        
+        // Auto-diplome checkbox
+        document.getElementById('auto-diplome').addEventListener('change', (e) => {
+            localStorage.setItem('autoDiplome', e.target.checked);
+        });
     }
     
-    initializeUI() {
-        // Set default selections
-        document.querySelector('.player-option[data-players="1"]').classList.add('selected');
-        document.querySelector('.difficulty-btn[data-difficulty="medium"]').classList.add('selected');
-    }
-    
-    loadPlayerData() {
-        this.playerName = localStorage.getItem('playerName') || 'Jouè';
+    loadGameData() {
+        // Load player name
+        this.playerName = localStorage.getItem('dominoPlayerName') || 'Jouè';
         document.getElementById('player-name').value = this.playerName;
         
-        // Load diplome count
-        const diplomeViews = localStorage.getItem('diplomeViews') || '0';
-        document.getElementById('diplome-shown').textContent = diplomeViews;
+        // Load stats
+        const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed')) || 0;
+        const winsCount = parseInt(localStorage.getItem('winsCount')) || 0;
+        const diplomeCount = parseInt(localStorage.getItem('diplomeCount')) || 0;
         
-        // Update stats
-        this.updateOnlineCount();
+        document.getElementById('games-played').textContent = gamesPlayed;
+        document.getElementById('wins-count').textContent = winsCount;
+        document.getElementById('diplome-count').textContent = diplomeCount;
+        
+        // Load auto-diplome preference
+        const autoDiplome = localStorage.getItem('autoDiplome') !== 'false';
+        document.getElementById('auto-diplome').checked = autoDiplome;
     }
     
-    selectPlayerCount(count) {
-        this.selectedPlayers = count;
-        
+    setCurrentDate() {
+        const now = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').textContent = 
+            now.toLocaleDateString('ht-HT', options);
+    }
+    
+    selectPlayerCount(optionElement) {
         // Update UI
         document.querySelectorAll('.player-option').forEach(opt => {
-            opt.classList.remove('selected');
+            opt.classList.remove('active');
         });
-        event.currentTarget.classList.add('selected');
+        optionElement.classList.add('active');
         
-        // Show/hide AI difficulty
-        const aiSection = document.getElementById('ai-difficulty');
-        if (count < 4) {
-            aiSection.classList.remove('hidden');
+        // Store selection
+        this.selectedPlayers = parseInt(optionElement.dataset.players);
+        
+        // Show/hide AI settings
+        const aiSettings = document.getElementById('ai-settings');
+        if (this.selectedPlayers < 4) {
+            aiSettings.style.display = 'block';
         } else {
-            aiSection.classList.add('hidden');
+            aiSettings.style.display = 'none';
         }
         
-        // Update game mode text
-        const modeText = count === 1 ? 'Solo' : 
-                        count === 2 ? '2 Moun' : 
-                        count === 3 ? '3 Moun' : '4 Moun';
+        // Update game mode display
+        const modeText = this.selectedPlayers === 1 ? 'SOLO' :
+                        this.selectedPlayers === 2 ? '2 JOUE' :
+                        this.selectedPlayers === 3 ? '3 JOUE' : '4 JOUE';
         document.getElementById('game-mode').textContent = modeText;
     }
     
-    selectDifficulty(difficulty) {
-        this.aiDifficulty = difficulty;
-        
+    selectDifficulty(buttonElement) {
         // Update UI
         document.querySelectorAll('.difficulty-btn').forEach(btn => {
-            btn.classList.remove('selected');
+            btn.classList.remove('active');
         });
-        event.currentTarget.classList.add('selected');
+        buttonElement.classList.add('active');
+        
+        // Store selection
+        this.aiDifficulty = buttonElement.dataset.difficulty;
     }
     
     startGame() {
         // Get player name
         this.playerName = document.getElementById('player-name').value.trim() || 'Jouè';
-        
         if (!this.playerName) {
-            this.showToast("Antre non ou anvan ou kòmanse");
+            this.showToast("Antre non ou anvan ou kòmanse!");
             return;
         }
         
-        // Create AI players if needed
-        this.createAIPlayers();
-        
-        // Initialize game state
+        // Initialize game
         this.initializeGame();
         
         // Show game screen
         this.showScreen('game-screen');
         
-        // Start AI turn if needed
-        setTimeout(() => this.checkAITurn(), 1000);
+        // Start the game
+        this.startTurn();
         
-        this.showToast("Jwèt la kòmanse! Bon chans!");
-    }
-    
-    createAIPlayers() {
-        this.aiPlayers = [];
-        const aiNames = [
-            ["Bot Jean", "👨"],
-            ["Bot Marie", "👩"],
-            ["Bot Pierre", "👨"],
-            ["Bot Claire", "👩"],
-            ["Bot Jacques", "👨"],
-            ["Bot Sophie", "👩"]
-        ];
+        // Log game start
+        this.addGameLog("🎲 Jwèt la kòmanse! Bon chans!", 'system');
         
-        const totalAI = 4 - this.selectedPlayers;
-        
-        // Shuffle names and pick needed amount
-        const shuffledNames = [...aiNames].sort(() => Math.random() - 0.5);
-        
-        for (let i = 0; i < totalAI; i++) {
-            const [name, emoji] = shuffledNames[i % shuffledNames.length];
-            this.aiPlayers.push({
-                id: `ai_${i}`,
-                name: name,
-                emoji: emoji,
-                difficulty: this.aiDifficulty,
-                isAI: true
-            });
-        }
+        // Update games played
+        const gamesPlayed = parseInt(document.getElementById('games-played').textContent) + 1;
+        document.getElementById('games-played').textContent = gamesPlayed;
+        localStorage.setItem('gamesPlayed', gamesPlayed);
     }
     
     initializeGame() {
-        // Generate domino set
-        const dominoes = this.generateDominoSet();
+        // Reset game state
+        this.gameState = {
+            players: [],
+            dominoLine: [],
+            remainingDominoes: this.generateDominoSet(),
+            currentPlayerIndex: 0,
+            scores: [0, 0, 0, 0],
+            round: 1,
+            gameStarted: true,
+            lineEnds: { left: null, right: null }
+        };
         
-        // Shuffle dominoes
-        this.shuffleArray(dominoes);
+        // Create players
+        this.createPlayers();
         
-        // Create players array
-        const players = [
-            {
-                id: 'player',
-                name: this.playerName,
-                hand: [],
-                isAI: false,
-                score: 0
-            }
-        ];
-        
-        // Add AI players
-        this.aiPlayers.forEach(ai => {
-            players.push({
-                id: ai.id,
-                name: ai.name,
-                hand: [],
-                isAI: true,
-                score: 0,
-                difficulty: ai.difficulty
-            });
-        });
-        
-        // Add empty slots if needed
-        while (players.length < 4) {
-            players.push({
-                id: `empty_${players.length}`,
-                name: `Jouè ${players.length + 1}`,
-                hand: [],
-                isAI: false,
-                score: 0
-            });
-        }
-        
-        // Deal 7 dominoes to each player
-        for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 7; j++) {
-                if (dominoes.length > 0) {
-                    players[i].hand.push(dominoes.pop());
-                }
-            }
-        }
+        // Shuffle and deal dominoes
+        this.shuffleArray(this.gameState.remainingDominoes);
+        this.dealDominoes();
         
         // Find starting player (who has double-six)
-        let startingPlayerIndex = 0;
-        for (let i = 0; i < players.length; i++) {
-            if (players[i].hand.some(d => d[0] === 6 && d[1] === 6)) {
-                startingPlayerIndex = i;
-                break;
-            }
-        }
-        
-        // Create game state
-        this.gameState = {
-            players: players,
-            dominoLine: [],
-            remainingDominoes: dominoes,
-            currentPlayerIndex: startingPlayerIndex,
-            scores: players.map(p => 0),
-            round: 1,
-            gameStarted: true
-        };
+        this.findStartingPlayer();
         
         // Update UI
         this.updateGameDisplay();
+    }
+    
+    createPlayers() {
+        const playerNames = [
+            this.playerName,
+            "Bot Jean",
+            "Bot Marie", 
+            "Bot Pierre"
+        ];
         
-        // Add to game log
-        this.addGameLog("Jwèt la kòmanse!");
-        this.addGameLog(`${players[startingPlayerIndex].name} kòmanse jwèt la.`);
+        // Clear existing players
+        this.gameState.players = [];
+        this.aiPlayers = [];
+        
+        // Add human player
+        this.gameState.players.push({
+            id: 0,
+            name: playerNames[0],
+            hand: [],
+            isAI: false,
+            score: 0
+        });
+        
+        // Add AI players based on selected count
+        const totalPlayers = 4;
+        for (let i = 1; i < totalPlayers; i++) {
+            const isAI = i >= this.selectedPlayers; // Players beyond selected count are AI
+            this.gameState.players.push({
+                id: i,
+                name: playerNames[i] + (isAI ? " (AI)" : ""),
+                hand: [],
+                isAI: isAI,
+                difficulty: this.aiDifficulty,
+                score: 0
+            });
+            
+            if (isAI) {
+                this.aiPlayers.push(i);
+            }
+        }
     }
     
     generateDominoSet() {
@@ -276,13 +261,46 @@ class DominoGame {
         return array;
     }
     
+    dealDominoes() {
+        // Each player gets 7 dominoes
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 7; j++) {
+                if (this.gameState.remainingDominoes.length > 0) {
+                    this.gameState.players[i].hand.push(this.gameState.remainingDominoes.pop());
+                }
+            }
+        }
+    }
+    
+    findStartingPlayer() {
+        // Find player with double-six
+        for (let i = 0; i < 4; i++) {
+            if (this.gameState.players[i].hand.some(d => d[0] === 6 && d[1] === 6)) {
+                this.gameState.currentPlayerIndex = i;
+                return;
+            }
+        }
+        
+        // If no one has double-six, player with highest double starts
+        let maxDouble = -1;
+        let startingPlayer = 0;
+        
+        for (let i = 0; i < 4; i++) {
+            this.gameState.players[i].hand.forEach(domino => {
+                if (domino[0] === domino[1] && domino[0] > maxDouble) {
+                    maxDouble = domino[0];
+                    startingPlayer = i;
+                }
+            });
+        }
+        
+        this.gameState.currentPlayerIndex = startingPlayer;
+    }
+    
     showScreen(screenId) {
-        // Hide all screens
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
         });
-        
-        // Show requested screen
         document.getElementById(screenId).classList.add('active');
     }
     
@@ -290,167 +308,212 @@ class DominoGame {
         if (!this.gameState) return;
         
         const currentPlayer = this.gameState.players[this.gameState.currentPlayerIndex];
-        this.isMyTurn = currentPlayer.id === 'player';
+        const isPlayerTurn = currentPlayer.id === 0;
         
         // Update turn indicator
         const turnIndicator = document.getElementById('turn-indicator');
-        if (this.isMyTurn) {
-            turnIndicator.textContent = "🎯 Se tou pa ou!";
-            turnIndicator.style.background = 'var(--haiti-gold)';
+        if (isPlayerTurn) {
+            turnIndicator.innerHTML = '<span class="turn-icon">🎯</span><span class="turn-text">SE TOU PA OU!</span>';
+            turnIndicator.style.background = 'var(--accent-gold)';
         } else {
-            turnIndicator.textContent = `🎯 Se tou pa ${currentPlayer.name}`;
+            turnIndicator.innerHTML = `<span class="turn-icon">⏳</span><span class="turn-text">SE TOU PA ${currentPlayer.name}</span>`;
             turnIndicator.style.background = '#ddd';
         }
+        
+        // Update player score
+        document.getElementById('player-score').textContent = this.gameState.scores[0];
         
         // Update boneyard count
         document.getElementById('boneyard-count').textContent = 
             this.gameState.remainingDominoes.length;
         
-        // Update player hands
-        this.updatePlayerHands();
-        
-        // Update domino line
-        this.updateDominoLine();
+        // Update player hand count
+        document.getElementById('player-hand-count').textContent = 
+            this.gameState.players[0].hand.length;
         
         // Update opponent info
         this.updateOpponentInfo();
         
-        // Enable/disable controls
-        document.getElementById('pass-btn').disabled = !this.isMyTurn;
-        document.getElementById('draw-btn').disabled = !this.isMyTurn;
+        // Update domino line
+        this.updateDominoLine();
         
-        // Update my score
-        const myPlayer = this.gameState.players.find(p => p.id === 'player');
-        if (myPlayer) {
-            document.getElementById('score-display').textContent = 
-                `Pwen: ${myPlayer.score}`;
+        // Update player hand
+        this.updatePlayerHand();
+        
+        // Enable/disable controls
+        document.getElementById('draw-btn').disabled = !isPlayerTurn;
+        document.getElementById('pass-btn').disabled = !isPlayerTurn;
+        
+        // Update game status
+        const gameStatus = document.getElementById('game-status');
+        if (isPlayerTurn) {
+            gameStatus.textContent = "Chwazi yon domino pou jwe";
+        } else {
+            gameStatus.textContent = `${currentPlayer.name} ap reflechi...`;
         }
     }
     
-    updatePlayerHands() {
-        const myPlayer = this.gameState.players.find(p => p.id === 'player');
-        if (!myPlayer) return;
+    updateOpponentInfo() {
+        // Update top player (index 2)
+        const topPlayer = this.gameState.players[2];
+        const topElement = document.getElementById('top-player');
+        topElement.querySelector('.player-name').textContent = topPlayer.name;
+        topElement.querySelector('.player-hand-count').textContent = `${topPlayer.hand.length} domino`;
         
-        this.myHand = myPlayer.hand;
-        const handContainer = document.getElementById('my-hand');
-        handContainer.innerHTML = '';
+        // Update left player (index 1)
+        const leftPlayer = this.gameState.players[1];
+        const leftElement = document.getElementById('left-player');
+        leftElement.querySelector('.player-name').textContent = leftPlayer.name;
+        leftElement.querySelector('.player-hand-count').textContent = `${leftPlayer.hand.length} domino`;
         
-        // Update hand count
-        document.getElementById('my-hand-count').textContent = myPlayer.hand.length;
+        // Update right player (index 3)
+        const rightPlayer = this.gameState.players[3];
+        const rightElement = document.getElementById('right-player');
+        rightElement.querySelector('.player-name').textContent = rightPlayer.name;
+        rightElement.querySelector('.player-hand-count').textContent = `${rightPlayer.hand.length} domino`;
+        
+        // Highlight active player
+        const activeIndex = this.gameState.currentPlayerIndex;
+        document.querySelectorAll('.opponent-area').forEach(el => el.classList.remove('active-turn'));
+        
+        if (activeIndex === 2) topElement.classList.add('active-turn');
+        if (activeIndex === 1) leftElement.classList.add('active-turn');
+        if (activeIndex === 3) rightElement.classList.add('active-turn');
+    }
+    
+    updateDominoLine() {
+        const lineContainer = document.getElementById('domino-line');
+        lineContainer.innerHTML = '';
+        
+        // Update line ends
+        if (this.gameState.dominoLine.length > 0) {
+            const first = this.gameState.dominoLine[0];
+            const last = this.gameState.dominoLine[this.gameState.dominoLine.length - 1];
+            
+            document.getElementById('left-end').textContent = first[0];
+            document.getElementById('right-end').textContent = last[1];
+            
+            this.gameState.lineEnds = { left: first[0], right: last[1] };
+        } else {
+            document.getElementById('left-end').textContent = '0';
+            document.getElementById('right-end').textContent = '0';
+            this.gameState.lineEnds = { left: null, right: null };
+        }
         
         // Create domino elements
-        myPlayer.hand.forEach((domino, index) => {
-            const dominoEl = this.createDominoElement(domino, index);
+        this.gameState.dominoLine.forEach((domino, index) => {
+            const dominoEl = this.createDominoElement(domino, index, false);
+            lineContainer.appendChild(dominoEl);
+        });
+    }
+    
+    updatePlayerHand() {
+        const player = this.gameState.players[0];
+        const handContainer = document.getElementById('player-hand');
+        handContainer.innerHTML = '';
+        
+        player.hand.forEach((domino, index) => {
+            const dominoEl = this.createDominoElement(domino, index, true);
             handContainer.appendChild(dominoEl);
         });
     }
     
-    createDominoElement(domino, index) {
+    createDominoElement(domino, index, isSelectable = false) {
         const div = document.createElement('div');
-        div.className = 'domino';
+        div.className = 'domino-piece';
         div.dataset.index = index;
         
-        // Create left side
-        const leftSide = document.createElement('div');
-        leftSide.className = 'domino-side';
-        leftSide.innerHTML = this.createDominoDots(domino[0]);
+        // Add dot patterns
+        const topClass = `dots-${domino[0]}`;
+        const bottomClass = `dots-${domino[1]}`;
         
-        // Create right side
-        const rightSide = document.createElement('div');
-        rightSide.className = 'domino-side';
-        rightSide.innerHTML = this.createDominoDots(domino[1]);
+        div.innerHTML = `
+            <div class="domino-half ${topClass}">
+                <div class="dots-container">
+                    ${Array(9).fill('<div class="dot"></div>').join('')}
+                </div>
+            </div>
+            <div class="domino-divider"></div>
+            <div class="domino-half ${bottomClass}">
+                <div class="dots-container">
+                    ${Array(9).fill('<div class="dot"></div>').join('')}
+                </div>
+            </div>
+        `;
         
-        // Add click event
-        div.addEventListener('click', () => this.selectDomino(index));
-        
-        div.appendChild(leftSide);
-        div.appendChild(rightSide);
+        // Add selection behavior
+        if (isSelectable) {
+            div.addEventListener('click', () => this.selectDomino(index));
+        }
         
         return div;
     }
     
-    createDominoDots(value) {
-        // Simple number display for now
-        const span = document.createElement('span');
-        span.className = 'domino-number';
-        span.textContent = value;
-        return span.outerHTML;
-        
-        // Note: For a real domino game, you'd want proper dot patterns
-        // This simplified version shows numbers instead
-    }
-    
     selectDomino(index) {
-        if (!this.isMyTurn) {
+        const player = this.gameState.players[0];
+        if (this.gameState.currentPlayerIndex !== 0) {
             this.showToast("Se pa tou pa ou!");
             return;
         }
         
-        // Clear previous selection
-        document.querySelectorAll('.domino').forEach(el => {
-            el.classList.remove('selected');
-        });
+        const domino = player.hand[index];
         
-        // Select new domino
-        const dominoes = document.querySelectorAll('.domino');
-        if (this.selectedDomino === index) {
-            this.selectedDomino = null;
-        } else {
-            this.selectedDomino = index;
-            dominoes[index].classList.add('selected');
+        // Check if domino can be played
+        if (this.canPlayDomino(domino)) {
+            // Highlight selection
+            document.querySelectorAll('.domino-piece').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
             
-            // Try to play the domino
-            const domino = this.myHand[index];
-            if (this.canPlayDomino(domino)) {
-                this.playDomino(domino);
-            } else {
-                this.showToast("Domino sa a pa kapab jwe kounye a");
-            }
+            // Play the domino
+            this.playDomino(index, domino);
+        } else {
+            this.showToast("Domino sa a pa kapab jwe kounye a!");
         }
     }
     
     canPlayDomino(domino) {
+        // If line is empty, only double-six can start
         if (this.gameState.dominoLine.length === 0) {
-            // First domino must be double-six
             return domino[0] === 6 && domino[1] === 6;
         }
         
-        const ends = this.getLineEnds();
-        return domino[0] === ends.left || domino[1] === ends.left || 
+        // Check if domino matches either end
+        const ends = this.gameState.lineEnds;
+        return domino[0] === ends.left || domino[1] === ends.left ||
                domino[0] === ends.right || domino[1] === ends.right;
     }
     
-    getLineEnds() {
-        if (this.gameState.dominoLine.length === 0) {
-            return { left: null, right: null };
-        }
-        
-        const first = this.gameState.dominoLine[0];
-        const last = this.gameState.dominoLine[this.gameState.dominoLine.length - 1];
-        
-        return {
-            left: first[0],
-            right: last[1]
-        };
-    }
-    
-    playDomino(domino) {
-        if (!this.isMyTurn) return;
-        
-        const myPlayer = this.gameState.players.find(p => p.id === 'player');
-        if (!myPlayer) return;
-        
-        // Find domino in hand
-        const handIndex = myPlayer.hand.findIndex(d => 
-            d[0] === domino[0] && d[1] === domino[1]);
-        
-        if (handIndex === -1) return;
+    playDomino(index, domino) {
+        const player = this.gameState.players[0];
         
         // Remove from hand
-        myPlayer.hand.splice(handIndex, 1);
+        player.hand.splice(index, 1);
         
-        // Add to domino line
-        this.gameState.dominoLine.push(domino);
+        // Add to domino line with correct orientation
+        const ends = this.gameState.lineEnds;
+        let orientedDomino = domino;
+        
+        if (this.gameState.dominoLine.length === 0) {
+            // First domino
+            this.gameState.dominoLine.push(domino);
+        } else if (domino[0] === ends.left || domino[1] === ends.left) {
+            // Play on left end
+            if (domino[1] === ends.left) {
+                orientedDomino = [domino[1], domino[0]]; // Flip if needed
+            }
+            this.gameState.dominoLine.unshift(orientedDomino);
+        } else {
+            // Play on right end
+            if (domino[0] === ends.right) {
+                orientedDomino = [domino[1], domino[0]]; // Flip if needed
+            }
+            this.gameState.dominoLine.push(orientedDomino);
+        }
+        
+        // Update scores
+        player.score += domino[0] + domino[1];
         
         // Move to next player
         this.gameState.currentPlayerIndex = (this.gameState.currentPlayerIndex + 1) % 4;
@@ -459,32 +522,34 @@ class DominoGame {
         this.updateGameDisplay();
         
         // Add to game log
-        this.addGameLog(`${myPlayer.name} te jwe domino [${domino[0]}|${domino[1]}]`);
-        
-        // Clear selection
-        this.selectedDomino = null;
+        this.addGameLog(`${player.name} te jwe [${domino[0]}|${domino[1]}]`, 'player');
         
         // Check for game end
         if (this.checkGameEnd()) {
             setTimeout(() => this.endGame(), 1000);
         } else {
-            // Check AI turn
-            setTimeout(() => this.checkAITurn(), 500);
+            // Start next turn
+            setTimeout(() => this.startTurn(), 500);
         }
     }
     
     drawDomino() {
-        if (!this.isMyTurn || this.gameState.remainingDominoes.length === 0) {
-            this.showToast("Pa gen domino ki rete nan pil la");
+        const player = this.gameState.players[0];
+        
+        if (this.gameState.currentPlayerIndex !== 0) {
+            this.showToast("Se pa tou pa ou!");
             return;
         }
         
-        const myPlayer = this.gameState.players.find(p => p.id === 'player');
-        if (!myPlayer) return;
+        if (this.gameState.remainingDominoes.length === 0) {
+            this.showToast("Pa gen domino ki rete nan pil la!");
+            this.passTurn();
+            return;
+        }
         
         // Draw domino
         const drawnDomino = this.gameState.remainingDominoes.pop();
-        myPlayer.hand.push(drawnDomino);
+        player.hand.push(drawnDomino);
         
         // Move to next player
         this.gameState.currentPlayerIndex = (this.gameState.currentPlayerIndex + 1) % 4;
@@ -493,16 +558,19 @@ class DominoGame {
         this.updateGameDisplay();
         
         // Add to game log
-        this.addGameLog(`${myPlayer.name} te pran yon domino`);
+        this.addGameLog(`${player.name} te pran yon domino nan pil la`, 'player');
         
-        // Check AI turn
-        setTimeout(() => this.checkAITurn(), 500);
+        // Start next turn
+        setTimeout(() => this.startTurn(), 500);
     }
     
     passTurn() {
-        if (!this.isMyTurn) return;
+        const player = this.gameState.players[0];
         
-        const myPlayer = this.gameState.players.find(p => p.id === 'player');
+        if (this.gameState.currentPlayerIndex !== 0) {
+            this.showToast("Se pa tou pa ou!");
+            return;
+        }
         
         // Move to next player
         this.gameState.currentPlayerIndex = (this.gameState.currentPlayerIndex + 1) % 4;
@@ -511,16 +579,19 @@ class DominoGame {
         this.updateGameDisplay();
         
         // Add to game log
-        this.addGameLog(`${myPlayer.name} pa t kapab jwe`);
+        this.addGameLog(`${player.name} pa t kapab jwe`, 'player');
         
-        // Check AI turn
-        setTimeout(() => this.checkAITurn(), 500);
+        // Start next turn
+        setTimeout(() => this.startTurn(), 500);
     }
     
-    checkAITurn() {
-        if (!this.gameState) return;
+    startTurn() {
+        if (!this.gameState || !this.gameState.gameStarted) return;
         
         const currentPlayer = this.gameState.players[this.gameState.currentPlayerIndex];
+        
+        // Update UI
+        this.updateGameDisplay();
         
         // If it's AI's turn
         if (currentPlayer.isAI) {
@@ -529,12 +600,11 @@ class DominoGame {
     }
     
     playAITurn(aiPlayer) {
-        // AI thinking delay based on difficulty
+        // AI thinking delay
         const delays = { easy: 2000, medium: 1500, hard: 1000 };
-        const delay = delays[aiPlayer.difficulty] || 1500;
+        const delay = delays[this.aiDifficulty] || 1500;
         
-        // Show AI thinking
-        this.addGameLog(`${aiPlayer.name} ap reflechi...`);
+        this.addGameLog(`${aiPlayer.name} ap reflechi...`, 'ai');
         
         setTimeout(() => {
             this.executeAITurn(aiPlayer);
@@ -543,22 +613,18 @@ class DominoGame {
     
     executeAITurn(aiPlayer) {
         const aiIndex = this.gameState.players.findIndex(p => p.id === aiPlayer.id);
-        if (aiIndex === -1) return;
-        
-        // Get valid moves
         const validMoves = this.getValidMovesForPlayer(aiIndex);
         
         if (validMoves.length > 0) {
             // AI plays a domino
             const selectedMove = this.selectAIMove(validMoves, aiPlayer);
-            this.playDominoForAI(aiIndex, selectedMove.domino);
+            this.playDominoForAI(aiIndex, selectedMove.domino, selectedMove.position);
+        } else if (this.gameState.remainingDominoes.length > 0) {
+            // AI draws from boneyard
+            this.drawDominoForAI(aiIndex);
         } else {
-            // AI draws or passes
-            if (this.gameState.remainingDominoes.length > 0) {
-                this.drawDominoForAI(aiIndex);
-            } else {
-                this.passTurnForAI(aiIndex);
-            }
+            // AI passes
+            this.passTurnForAI(aiIndex);
         }
     }
     
@@ -570,15 +636,26 @@ class DominoGame {
             // First move must be double-six
             const doubleSix = player.hand.find(d => d[0] === 6 && d[1] === 6);
             if (doubleSix) {
-                validMoves.push({ domino: doubleSix });
+                validMoves.push({ domino: doubleSix, position: 'center' });
             }
         } else {
-            const ends = this.getLineEnds();
+            const ends = this.gameState.lineEnds;
             
             player.hand.forEach(domino => {
-                if (domino[0] === ends.left || domino[1] === ends.left ||
-                    domino[0] === ends.right || domino[1] === ends.right) {
-                    validMoves.push({ domino });
+                // Check left side
+                if (domino[0] === ends.left || domino[1] === ends.left) {
+                    validMoves.push({
+                        domino: domino,
+                        position: domino[0] === ends.left ? 'left' : 'left-flipped'
+                    });
+                }
+                
+                // Check right side
+                if (domino[0] === ends.right || domino[1] === ends.right) {
+                    validMoves.push({
+                        domino: domino,
+                        position: domino[1] === ends.right ? 'right' : 'right-flipped'
+                    });
                 }
             });
         }
@@ -587,25 +664,65 @@ class DominoGame {
     }
     
     selectAIMove(validMoves, aiPlayer) {
-        // Simple AI: choose random move
-        // For harder difficulties, you could add more logic here
-        return validMoves[Math.floor(Math.random() * validMoves.length)];
+        // Simple AI strategy based on difficulty
+        if (this.aiDifficulty === 'easy') {
+            // Easy: random move
+            return validMoves[Math.floor(Math.random() * validMoves.length)];
+        } else if (this.aiDifficulty === 'medium') {
+            // Medium: prefer doubles and higher points
+            validMoves.sort((a, b) => {
+                const aScore = (a.domino[0] === a.domino[1] ? 10 : 0) + a.domino[0] + a.domino[1];
+                const bScore = (b.domino[0] === b.domino[1] ? 10 : 0) + b.domino[0] + b.domino[1];
+                return bScore - aScore;
+            });
+            return validMoves[0];
+        } else {
+            // Hard: strategic play
+            validMoves.sort((a, b) => {
+                const aIsDouble = a.domino[0] === a.domino[1] ? 1 : 0;
+                const bIsDouble = b.domino[0] === b.domino[1] ? 1 : 0;
+                
+                // Prefer doubles
+                if (aIsDouble !== bIsDouble) return bIsDouble - aIsDouble;
+                
+                // Prefer lower points to save high ones
+                const aPoints = a.domino[0] + a.domino[1];
+                const bPoints = b.domino[0] + b.domino[1];
+                return aPoints - bPoints;
+            });
+            return validMoves[0];
+        }
     }
     
-    playDominoForAI(playerIndex, domino) {
+    playDominoForAI(playerIndex, domino, position) {
         const player = this.gameState.players[playerIndex];
         
         // Find domino in hand
         const handIndex = player.hand.findIndex(d => 
-            d[0] === domino[0] && d[1] === domino[1]);
+            d[0] === domino[0] && d[1] === domino[1]
+        );
         
         if (handIndex === -1) return;
         
         // Remove from hand
         player.hand.splice(handIndex, 1);
         
-        // Add to domino line
-        this.gameState.dominoLine.push(domino);
+        // Add to domino line with correct orientation
+        let orientedDomino = domino;
+        if (position.includes('flipped')) {
+            orientedDomino = [domino[1], domino[0]];
+        }
+        
+        if (position.includes('left')) {
+            this.gameState.dominoLine.unshift(orientedDomino);
+        } else if (position.includes('right')) {
+            this.gameState.dominoLine.push(orientedDomino);
+        } else {
+            this.gameState.dominoLine.push(orientedDomino);
+        }
+        
+        // Update scores
+        player.score += domino[0] + domino[1];
         
         // Move to next player
         this.gameState.currentPlayerIndex = (this.gameState.currentPlayerIndex + 1) % 4;
@@ -614,14 +731,14 @@ class DominoGame {
         this.updateGameDisplay();
         
         // Add to game log
-        this.addGameLog(`${player.name} te jwe domino [${domino[0]}|${domino[1]}]`);
+        this.addGameLog(`${player.name} te jwe [${domino[0]}|${domino[1]}]`, 'ai');
         
         // Check for game end
         if (this.checkGameEnd()) {
             setTimeout(() => this.endGame(), 1000);
         } else {
-            // Check next turn
-            setTimeout(() => this.checkAITurn(), 500);
+            // Start next turn
+            setTimeout(() => this.startTurn(), 500);
         }
     }
     
@@ -635,9 +752,9 @@ class DominoGame {
         this.gameState.currentPlayerIndex = (this.gameState.currentPlayerIndex + 1) % 4;
         
         this.updateGameDisplay();
-        this.addGameLog(`${player.name} te pran yon domino`);
+        this.addGameLog(`${player.name} te pran yon domino`, 'ai');
         
-        setTimeout(() => this.checkAITurn(), 500);
+        setTimeout(() => this.startTurn(), 500);
     }
     
     passTurnForAI(playerIndex) {
@@ -645,157 +762,113 @@ class DominoGame {
         this.gameState.currentPlayerIndex = (this.gameState.currentPlayerIndex + 1) % 4;
         
         this.updateGameDisplay();
-        this.addGameLog(`${player.name} pa t kapab jwe`);
+        this.addGameLog(`${player.name} pa t kapab jwe`, 'ai');
         
-        setTimeout(() => this.checkAITurn(), 500);
-    }
-    
-    updateDominoLine() {
-        const container = document.getElementById('domino-line');
-        container.innerHTML = '';
-        
-        this.gameState.dominoLine.forEach((domino, index) => {
-            const dominoEl = this.createDominoElement(domino, index);
-            container.appendChild(dominoEl);
-        });
-    }
-    
-    updateOpponentInfo() {
-        const opponents = [
-            { id: 'opponent-left', index: 1 },
-            { id: 'opponent-top', index: 2 },
-            { id: 'opponent-right', index: 3 }
-        ];
-        
-        opponents.forEach(({ id, index }) => {
-            if (index < this.gameState.players.length) {
-                const player = this.gameState.players[index];
-                const element = document.getElementById(id);
-                
-                if (element) {
-                    element.querySelector('.player-label').textContent = player.name;
-                    element.querySelector('.hand-count').textContent = `${player.hand.length} domino`;
-                    
-                    // Show AI badge
-                    const aiBadge = element.querySelector('.ai-badge');
-                    if (player.isAI) {
-                        aiBadge.textContent = 'AI';
-                        aiBadge.style.display = 'inline-block';
-                    } else {
-                        aiBadge.style.display = 'none';
-                    }
-                    
-                    // Highlight if it's their turn
-                    if (this.gameState.currentPlayerIndex === index) {
-                        element.classList.add('active');
-                    } else {
-                        element.classList.remove('active');
-                    }
-                }
-            }
-        });
+        setTimeout(() => this.startTurn(), 500);
     }
     
     checkGameEnd() {
         // Game ends when a player has no dominoes
-        return this.gameState.players.some(p => p.hand.length === 0);
+        return this.gameState.players.some(p => p.hand.length === 0) ||
+               (this.gameState.remainingDominoes.length === 0 && 
+                this.gameState.players.every(p => !this.hasValidMove(p)));
+    }
+    
+    hasValidMove(player) {
+        if (this.gameState.dominoLine.length === 0) {
+            return player.hand.some(d => d[0] === 6 && d[1] === 6);
+        }
+        
+        const ends = this.gameState.lineEnds;
+        return player.hand.some(d => 
+            d[0] === ends.left || d[1] === ends.left ||
+            d[0] === ends.right || d[1] === ends.right
+        );
     }
     
     endGame() {
-        // Calculate scores
-        const winnerIndex = this.gameState.players.findIndex(p => p.hand.length === 0);
+        // Calculate final scores
+        this.calculateFinalScores();
         
-        if (winnerIndex !== -1) {
-            const winner = this.gameState.players[winnerIndex];
-            
-            // Calculate points
-            let totalPoints = 0;
-            this.gameState.players.forEach((player, index) => {
-                if (index !== winnerIndex) {
-                    const handPoints = player.hand.reduce((sum, domino) => sum + domino[0] + domino[1], 0);
-                    totalPoints += handPoints;
-                    this.gameState.scores[index] -= handPoints;
-                }
-            });
-            
-            this.gameState.scores[winnerIndex] += totalPoints;
-        }
+        // Determine winner
+        let winnerIndex = 0;
+        let highestScore = -1;
         
-        // Show game over screen
-        this.showGameOverScreen(winnerIndex);
-    }
-    
-    showGameOverScreen(winnerIndex) {
-        // Update winner display
-        const winnerName = document.getElementById('winner-name');
-        if (winnerIndex !== -1) {
-            const winner = this.gameState.players[winnerIndex];
-            winnerName.textContent = `🏆 ${winner.name} Genyen! 🏆`;
+        this.gameState.players.forEach((player, index) => {
+            if (player.score > highestScore) {
+                highestScore = player.score;
+                winnerIndex = index;
+            }
+        });
+        
+        const winner = this.gameState.players[winnerIndex];
+        
+        // Update winner announcement
+        const announcement = document.getElementById('winner-announcement');
+        if (winnerIndex === 0) {
+            announcement.textContent = `🏆 OU GENYEN! 🏆`;
+            announcement.style.color = 'var(--success)';
             
-            // Check if player won for diplome
-            if (winner.id === 'player') {
-                const diplomeViews = parseInt(localStorage.getItem('diplomeViews') || 0);
-                localStorage.setItem('diplomeViews', (diplomeViews + 1).toString());
-                document.getElementById('diplome-shown').textContent = diplomeViews + 1;
+            // Update wins count
+            const winsCount = parseInt(document.getElementById('wins-count').textContent) + 1;
+            document.getElementById('wins-count').textContent = winsCount;
+            localStorage.setItem('winsCount', winsCount);
+            
+            // Show diplome if enabled
+            const autoDiplome = document.getElementById('auto-diplome').checked;
+            if (autoDiplome) {
+                setTimeout(() => showDiplome(), 1000);
                 
-                // Show diplome with 30% chance
-                if (Math.random() < 0.3) {
-                    setTimeout(() => showDiplome(), 1000);
-                }
+                // Update diplome count
+                const diplomeCount = parseInt(document.getElementById('diplome-count').textContent) + 1;
+                document.getElementById('diplome-count').textContent = diplomeCount;
+                localStorage.setItem('diplomeCount', diplomeCount);
             }
         } else {
-            winnerName.textContent = 'Match nul!';
+            announcement.textContent = `🏆 ${winner.name} GENYEN! 🏆`;
+            announcement.style.color = 'var(--danger)';
         }
         
         // Update scores table
-        const tableBody = document.querySelector('#final-scores-table tbody');
-        tableBody.innerHTML = '';
+        const scoresTable = document.getElementById('final-scores');
+        scoresTable.innerHTML = '';
         
         this.gameState.players.forEach((player, index) => {
             const row = document.createElement('tr');
+            if (index === winnerIndex) {
+                row.className = 'winner-row';
+            }
+            
+            const handPoints = player.hand.reduce((sum, domino) => sum + domino[0] + domino[1], 0);
+            const totalScore = player.score - handPoints;
+            
             row.innerHTML = `
-                <td>${player.name} ${player.id === 'player' ? '(Ou)' : ''}</td>
-                <td>${this.gameState.scores[index]}</td>
-                <td>${player.hand.length}</td>
+                <td>${player.name} ${index === 0 ? '(Ou)' : ''}</td>
+                <td>${player.score}</td>
+                <td>${handPoints}</td>
+                <td><strong>${totalScore}</strong></td>
             `;
-            tableBody.appendChild(row);
+            scoresTable.appendChild(row);
         });
-        
-        // Update games played
-        const gamesElement = document.getElementById('games-played');
-        let games = parseInt(gamesElement.textContent) || 0;
-        gamesElement.textContent = games + 1;
         
         // Show game over screen
         this.showScreen('game-over-screen');
+        
+        // Play win sound
+        this.playSound('win');
     }
     
-    playAgain() {
-        // Reset and start new game
-        this.gameState = null;
-        this.selectedDomino = null;
-        this.startGame();
-    }
-    
-    backToHome() {
-        this.showScreen('home-screen');
-        this.gameState = null;
-        this.selectedDomino = null;
-    }
-    
-    leaveGame() {
-        if (confirm("Èske ou vle soti nan jwèt la?")) {
-            this.backToHome();
-        }
+    calculateFinalScores() {
+        // For each player, subtract points in hand from score
+        this.gameState.players.forEach((player, index) => {
+            const handPoints = player.hand.reduce((sum, domino) => sum + domino[0] + domino[1], 0);
+            this.gameState.scores[index] = player.score - handPoints;
+        });
     }
     
     showHint() {
-        if (!this.isMyTurn) {
-            this.showToast("Se pa tou pa ou!");
-            return;
-        }
-        
-        const validMoves = this.getValidMovesForPlayer(0); // Player is at index 0
+        const player = this.gameState.players[0];
+        const validMoves = this.getValidMovesForPlayer(0);
         
         if (validMoves.length > 0) {
             this.showToast(`💡 Ou gen ${validMoves.length} domino kapab jwe`);
@@ -804,18 +877,39 @@ class DominoGame {
         }
     }
     
-    addGameLog(message) {
-        const logContainer = document.querySelector('.log-entries');
-        if (!logContainer) return;
-        
-        const logEntry = document.createElement('div');
-        logEntry.className = 'log-entry';
+    addGameLog(message, type = 'system') {
+        const logContainer = document.getElementById('game-log');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}-turn`;
         
         const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        logEntry.textContent = `[${time}] ${message}`;
+        entry.textContent = `[${time}] ${message}`;
         
-        logContainer.appendChild(logEntry);
+        logContainer.appendChild(entry);
         logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    clearGameLog() {
+        document.getElementById('game-log').innerHTML = '';
+    }
+    
+    playAgain() {
+        // Reset and start new game
+        this.initializeGame();
+        this.showScreen('game-screen');
+        this.startTurn();
+        this.addGameLog("🎲 Nouvo jwèt kòmanse!", 'system');
+    }
+    
+    returnToMenu() {
+        if (this.isGameActive) {
+            if (confirm("Èske ou vle soti nan jwèt la? Pwen ou pèdi.")) {
+                this.showScreen('main-menu');
+                this.isGameActive = false;
+            }
+        } else {
+            this.showScreen('main-menu');
+        }
     }
     
     showToast(message) {
@@ -828,40 +922,50 @@ class DominoGame {
         }, 3000);
     }
     
-    updateOnlineCount() {
-        const onlineCount = Math.floor(Math.random() * 50) + 20;
-        document.getElementById('online-count').textContent = onlineCount;
+    playSound(type) {
+        try {
+            const audio = document.getElementById(`sound-${type}`);
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log("Sound error:", e));
+            }
+        } catch (e) {
+            console.log("Audio error:", e);
+        }
     }
 }
 
-// Global functions for diplome
+// Global functions
 function showDiplome() {
     const overlay = document.getElementById('diplome-overlay');
-    overlay.classList.remove('hidden');
+    overlay.style.display = 'flex';
     
-    // Update diplome count
-    const diplomeViews = parseInt(localStorage.getItem('diplomeViews') || 0);
-    localStorage.setItem('diplomeViews', (diplomeViews + 1).toString());
-    document.getElementById('diplome-shown').textContent = diplomeViews + 1;
+    // Play sound if available
+    try {
+        const audio = document.getElementById('sound-win');
+        if (audio) audio.play();
+    } catch (e) {}
 }
 
 function closeDiplome() {
-    document.getElementById('diplome-overlay').classList.add('hidden');
+    document.getElementById('diplome-overlay').style.display = 'none';
 }
 
-// Initialize game when page loads
+// Initialize game
 let game;
+
 window.addEventListener('DOMContentLoaded', () => {
     game = new DominoGame();
     
-    // Update online count every 30 seconds
-    setInterval(() => game.updateOnlineCount(), 30000);
+    // Set default selections
+    document.querySelector('.player-option[data-players="1"]').click();
+    document.querySelector('.difficulty-btn[data-difficulty="medium"]').click();
     
-    // Check for special code in URL
+    // Check URL for special code
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     
-    if (code === 'DARBOUZE123' || code === 'POUCHON2024') {
+    if (code && (code.toUpperCase() === 'DARBOUZE123' || code.toUpperCase() === 'POUCHON2024')) {
         setTimeout(() => {
             showDiplome();
             game.showToast("🎉 Ou jwenn kòd espesyal Mr Darbouze a!");
