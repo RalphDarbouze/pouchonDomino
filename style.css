@@ -1179,3 +1179,43 @@ body {
 .domino-piece.double .domino-value {
     font-size: 1.5em;
 }
+/* Fix for domino dots */
+.domino-half {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    height: 100%;
+}
+
+.domino-piece.double .domino-half {
+    width: 100%;
+    height: 50%;
+}
+
+/* Ensure dots are visible */
+.domino-half div[style*="grid"] {
+    display: grid !important;
+}
+
+.domino-half div[style*="grid"] div {
+    display: block !important;
+    background-color: #333 !important;
+    border-radius: 50% !important;
+}
+
+/* Make sure tiny dominoes show dots */
+.domino-piece.tiny .domino-half div[style*="grid"] div {
+    width: 3px !important;
+    height: 3px !important;
+}
+
+.domino-piece.small .domino-half div[style*="grid"] div {
+    width: 5px !important;
+    height: 5px !important;
+}
+
+.domino-piece:not(.small):not(.tiny) .domino-half div[style*="grid"] div {
+    width: 8px !important;
+    height: 8px !important;
+}
