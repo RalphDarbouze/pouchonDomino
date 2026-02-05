@@ -1,4 +1,4 @@
-// DOMINO DE POUCHON POUCHON VILLE - Simple Working Version
+// DOMINO DE POUCHON POUCHON VILLE - Fixed with Proper Domino Dots
 class DominoGame {
     constructor() {
         this.playerName = 'Jouè';
@@ -348,7 +348,7 @@ class DominoGame {
         const topHand = document.getElementById('top-hand');
         topHand.innerHTML = '';
         topPlayer.hand.forEach((domino, index) => {
-            const dominoEl = this.createSimpleDominoElement(domino, index, false, 'tiny');
+            const dominoEl = this.createDominoElement(domino, index, false, 'tiny');
             topHand.appendChild(dominoEl);
         });
         
@@ -362,7 +362,7 @@ class DominoGame {
         const leftHand = document.getElementById('left-hand');
         leftHand.innerHTML = '';
         leftPlayer.hand.forEach((domino, index) => {
-            const dominoEl = this.createSimpleDominoElement(domino, index, false, 'tiny');
+            const dominoEl = this.createDominoElement(domino, index, false, 'tiny');
             leftHand.appendChild(dominoEl);
         });
         
@@ -376,7 +376,7 @@ class DominoGame {
         const rightHand = document.getElementById('right-hand');
         rightHand.innerHTML = '';
         rightPlayer.hand.forEach((domino, index) => {
-            const dominoEl = this.createSimpleDominoElement(domino, index, false, 'tiny');
+            const dominoEl = this.createDominoElement(domino, index, false, 'tiny');
             rightHand.appendChild(dominoEl);
         });
         
@@ -389,7 +389,46 @@ class DominoGame {
         if (activeIndex === 3) rightElement.classList.add('active-turn');
     }
     
-    createSimpleDominoElement(domino, index, isSelectable = false, size = 'normal') {
+    updateDominoLine() {
+        const lineContainer = document.getElementById('domino-line');
+        lineContainer.innerHTML = '';
+        
+        // Update line ends
+        if (this.gameState.dominoLine.length > 0) {
+            const first = this.gameState.dominoLine[0];
+            const last = this.gameState.dominoLine[this.gameState.dominoLine.length - 1];
+            
+            document.getElementById('left-end').textContent = first[0];
+            document.getElementById('right-end').textContent = last[1];
+            
+            this.gameState.lineEnds = { left: first[0], right: last[1] };
+        } else {
+            document.getElementById('left-end').textContent = '0';
+            document.getElementById('right-end').textContent = '0';
+            this.gameState.lineEnds = { left: null, right: null };
+        }
+        
+        // Create domino elements for the line
+        this.gameState.dominoLine.forEach((domino, index) => {
+            const dominoEl = this.createDominoElement(domino, index, false, 'normal');
+            dominoEl.classList.add('played');
+            lineContainer.appendChild(dominoEl);
+        });
+    }
+    
+    updatePlayerHand() {
+        const player = this.gameState.players[0];
+        const handContainer = document.getElementById('player-hand');
+        handContainer.innerHTML = '';
+        
+        player.hand.forEach((domino, index) => {
+            const dominoEl = this.createDominoElement(domino, index, true, 'normal');
+            handContainer.appendChild(dominoEl);
+        });
+    }
+    
+    // FIXED: This function now creates proper dominoes with dots
+    createDominoElement(domino, index, isSelectable = false, size = 'normal') {
         const div = document.createElement('div');
         div.className = 'domino-piece';
         if (domino[0] === domino[1]) {
@@ -405,14 +444,14 @@ class DominoGame {
         div.dataset.index = index;
         div.dataset.value = `${domino[0]}-${domino[1]}`;
         
-        // Create two halves with numbers instead of dots for simplicity
+        // Create the two halves with proper dot patterns
         const half1 = document.createElement('div');
         half1.className = 'domino-half';
-        half1.innerHTML = `<div class="dot-number">${domino[0]}</div>`;
+        half1.innerHTML = this.createDotsHTML(domino[0], size);
         
         const half2 = document.createElement('div');
         half2.className = 'domino-half';
-        half2.innerHTML = `<div class="dot-number">${domino[1]}</div>`;
+        half2.innerHTML = this.createDotsHTML(domino[1], size);
         
         // Create divider
         const divider = document.createElement('div');
@@ -439,42 +478,72 @@ class DominoGame {
         return div;
     }
     
-    updateDominoLine() {
-        const lineContainer = document.getElementById('domino-line');
-        lineContainer.innerHTML = '';
+    // NEW: Function to create proper dot patterns for each value
+    createDotsHTML(value, size) {
+        // Create dots based on value (0-6)
+        let dotsHTML = '';
         
-        // Update line ends
-        if (this.gameState.dominoLine.length > 0) {
-            const first = this.gameState.dominoLine[0];
-            const last = this.gameState.dominoLine[this.gameState.dominoLine.length - 1];
+        // Calculate dot size based on domino size
+        const dotSize = size === 'tiny' ? '3px' : size === 'small' ? '5px' : '8px';
+        const gap = size === 'tiny' ? '1px' : size === 'small' ? '2px' : '3px';
+        
+        // Create a 3x3 grid for dots
+        const dotsGrid = document.createElement('div');
+        dotsGrid.style.display = 'grid';
+        dotsGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        dotsGrid.style.gridTemplateRows = 'repeat(3, 1fr)';
+        dotsGrid.style.gap = gap;
+        dotsGrid.style.width = '100%';
+        dotsGrid.style.height = '100%';
+        dotsGrid.style.padding = '5px';
+        
+        // Create 9 positions (3x3 grid)
+        for (let i = 0; i < 9; i++) {
+            const dot = document.createElement('div');
+            dot.style.width = dotSize;
+            dot.style.height = dotSize;
+            dot.style.borderRadius = '50%';
+            dot.style.backgroundColor = '#333';
+            dot.style.margin = 'auto';
             
-            document.getElementById('left-end').textContent = first[0];
-            document.getElementById('right-end').textContent = last[1];
+            // Show/hide dots based on value
+            let showDot = false;
             
-            this.gameState.lineEnds = { left: first[0], right: last[1] };
-        } else {
-            document.getElementById('left-end').textContent = '0';
-            document.getElementById('right-end').textContent = '0';
-            this.gameState.lineEnds = { left: null, right: null };
+            switch(value) {
+                case 0:
+                    showDot = false;
+                    break;
+                case 1:
+                    // Center dot (position 5 in 1-indexed, 4 in 0-indexed)
+                    showDot = (i === 4);
+                    break;
+                case 2:
+                    // Top-left and bottom-right
+                    showDot = (i === 0 || i === 8);
+                    break;
+                case 3:
+                    // Diagonal + center
+                    showDot = (i === 0 || i === 4 || i === 8);
+                    break;
+                case 4:
+                    // Four corners
+                    showDot = (i === 0 || i === 2 || i === 6 || i === 8);
+                    break;
+                case 5:
+                    // Four corners + center
+                    showDot = (i === 0 || i === 2 || i === 4 || i === 6 || i === 8);
+                    break;
+                case 6:
+                    // All except center
+                    showDot = (i !== 4);
+                    break;
+            }
+            
+            dot.style.display = showDot ? 'block' : 'none';
+            dotsGrid.appendChild(dot);
         }
         
-        // Create domino elements for the line
-        this.gameState.dominoLine.forEach((domino, index) => {
-            const dominoEl = this.createSimpleDominoElement(domino, index, false, 'normal');
-            dominoEl.classList.add('played');
-            lineContainer.appendChild(dominoEl);
-        });
-    }
-    
-    updatePlayerHand() {
-        const player = this.gameState.players[0];
-        const handContainer = document.getElementById('player-hand');
-        handContainer.innerHTML = '';
-        
-        player.hand.forEach((domino, index) => {
-            const dominoEl = this.createSimpleDominoElement(domino, index, true, 'normal');
-            handContainer.appendChild(dominoEl);
-        });
+        return dotsGrid.outerHTML;
     }
     
     selectDomino(index) {
